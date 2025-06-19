@@ -15,20 +15,20 @@ Sprite::~Sprite()
 //constrcutor
 void Sprite::InitSprites()
 {
-	x = 80;
-	y = 250;
+	image = al_load_bitmap("spriteSheet.png");
+	animationDirection = 1;
+	animationColumns = 3;
+	frameHeight = 46;
+	runningSpeed = 0;
+	frameWidth = 32;
+	frameDelay = 6;
+	frameCount = 0;
 	maxFrame = 9;
 	curFrame = 0;
 	index = 0;
 	speed = 2;
-	runningSpeed = 0;
-	frameCount = 0;
-	frameDelay = 6;
-	frameWidth = 32;
-	frameHeight = 46;
-	animationColumns = 3;
-	animationDirection = 1;
-	image = al_load_bitmap("spriteSheet.png");
+	y = 250;
+	x = 80;	
 }
 
 //this function handles the logic of sprite movement in all directions and tests for collision
@@ -106,33 +106,27 @@ void Sprite::UpdateSprites(int width, int height, int dir, bool collided)
 	}
 	speed = 2;//resets walking speed after player stops running
 
-	//check for collided with foreground tiles
-	if (animationDirection == 0)
-	{
-		if (leftCollision(x, y, frameWidth, frameHeight)) { //collision detection to the left
-			x = oldx;
-			y = oldy;
-		}
-		if (collided) {
+	//check for collided with foreground tiles and against NPCs
+	if (animationDirection == 0) {//left
+		if (leftCollision(x, y, frameWidth, frameHeight) || collided) {
 			x = oldx + 2;
 			y = oldy;
 		}
 	}
-	else if (animationDirection == 1)
-	{
-		if (rightCollision(x, y, frameWidth, frameHeight) || collided) { //collision detection to the right
+	else if (animationDirection == 1) {//right
+		if (rightCollision(x, y, frameWidth, frameHeight) || collided) {
 			x = oldx - 2;
 			y = oldy;
 		}
 	}
-	else if (animationDirection == 3) {
-		if (topCollision(x, y, frameWidth, frameHeight) || collided) {//collision detection to the up
+	else if (animationDirection == 3) {//up
+		if (topCollision(x, y, frameWidth, frameHeight) || collided) {
 			x = oldx;
 			y = oldy +2;
 		}
 	}
-	else if (animationDirection == 4) {
-		if (bottomCollision(x, y, frameWidth, frameHeight) || collided) {//collision detection to the down
+	else if (animationDirection == 4) {//down
+		if (bottomCollision(x, y, frameWidth, frameHeight) || collided) {
 			x = oldx;
 			y = oldy - 2;
 		}

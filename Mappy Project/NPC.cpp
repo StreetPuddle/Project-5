@@ -1,4 +1,3 @@
-
 #include "NPC.h"
 
 //default constructor
@@ -15,20 +14,20 @@ NPC::~NPC() {
 //constrcutor
 void NPC::InitNPC(std::string fileName, int x, int y)
 {
-	this->x = x;
-	this->y = y;
-	maxFrame = 9;
-	curFrame = 0;
-	index = 0;
-	speed = 2;
+	image = al_load_bitmap(fileName.c_str());
+	animationDirection = 1;
+	animationColumns = 1;
+	frameHeight = 48;
 	runningSpeed = 0;
+	frameWidth = 32;
 	frameCount = 0;
 	frameDelay = 6;
-	frameWidth = 32;
-	frameHeight = 48;
-	animationColumns = 1;
-	animationDirection = 1;
-	image = al_load_bitmap(fileName.c_str());
+	maxFrame = 9;
+	curFrame = 0;
+	this->x = x;
+	this->y = y;
+	index = 0;
+	speed = 2;
 }
 
 //update the sprite to face the player

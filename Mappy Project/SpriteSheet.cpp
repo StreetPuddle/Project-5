@@ -159,7 +159,6 @@ void Sprite::DrawSprites(int xoffset, int yoffset)
 	}
 	else if (animationDirection == 0) {//left
 		al_draw_bitmap_region(image, fx, fy, frameWidth, frameHeight, x - xoffset, y - yoffset, 0);
-		std::cout << x << endl;
 	}
 	else if (animationDirection == 2) {//still
 		al_draw_bitmap_region(image, 0, 0, frameWidth, frameHeight, x - xoffset, y - yoffset, 0);

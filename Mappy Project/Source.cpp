@@ -52,6 +52,10 @@ int main(void)
 	enum KEYS { UP, DOWN, LEFT, RIGHT, SPACE, SHIFT };
 	bool done = false;
 	bool render = false;
+	bool isBattling = false;
+	bool battleResult = false;
+	int wins = 0;//might move
+	int menuSelect = 0;
 	char mapFile[12];
 	srand(time(0));
 
@@ -270,6 +274,7 @@ int main(void)
 				npc->DrawNPC(xOff, yOff);
 			}
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 308, 5, 0, "TIME LEFT: %.1f", countDown);//visual timer
+			MapUpdateAnims();
 			al_flip_display();
 			al_clear_to_color(al_map_rgb(0, 0, 0));
 		}
@@ -367,6 +372,7 @@ bool npcCollision(const Sprite& player, const std::vector<NPC*>& npcs) {
 		if (playerXBound > npcX && playerX < npcXBound &&
 			playerYBound > npcY && playerY < npcYBound) {
 			npc->updateNPC(player.getDir());
+			
 			return true;
 		}
 	}
@@ -416,18 +422,22 @@ void enteredCheatCode(std::vector<int>& input, Sprite& player, int level) {
 void createNPCs(NPC npc, std::vector<NPC*>& npcs) {
 	int sectionX = 100;
 	int sectionXBound = 200;
+	int buffer = 10;
 	npcs.clear();
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 9; i++) {
 		
 		int x = rand() % (sectionXBound - sectionX + 1) + sectionX; // Random x in [100, 200]
 		int y = rand() % (350 - 80 + 1) + 80;
+		if (i > 6)
+			y = 300;
+		int sprite = rand() % 11;
 
 		NPC* npc = new NPC();
-		std::string fileName = "NPC_" + std::to_string(i) + ".png";
+		std::string fileName = "NPC_" + std::to_string(sprite) + ".png";
 		npc->InitNPC(fileName, x, y);
 		npcs.push_back(npc);
 
-		sectionX += 100;
+		sectionX += 100 + buffer;
 		sectionXBound += 100;
 	}
 }

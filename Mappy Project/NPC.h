@@ -1,45 +1,48 @@
 #pragma once
-#include <allegro5/allegro.h>
-#include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
-#include <allegro5/allegro_ttf.h>
+#include <allegro5/allegro_acodec.h>
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_image.h>
 #include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
+#include <allegro5/allegro.h>
 #include <iostream>
 #include <string>
 class NPC
 {
 
 public:
-	NPC();
-	~NPC();
+
+	void InitNPC(std::string fileName, int width, int height);
+	int getHeight() const { return frameHeight; }
+	int getWidth() const { return frameWidth; }
+	void DrawNPC(int xoffset, int yoffset);
 	float getX() const { return x; }
 	float getY() const { return y; }
 	void setX(int sX) { x = sX; }
 	void setY(int sY) { y = sY; }
-	int getWidth() const { return frameWidth; }
-	int getHeight() const { return frameHeight; }
-	void InitNPC(std::string fileName, int width, int height);
 	void updateNPC(int dir);
-	void DrawNPC(int xoffset, int yoffset);
+	~NPC();
+	NPC();
 
 private:
 
-	float x;
-	float y;
 	int directionalFrames[3];
-	int index;
-	int speed;
+	int animationDirection;
+	int animationColumns;
+	int animationRows;
 	int runningSpeed;
-	int maxFrame;
-	int curFrame;
+	int frameHeight;
 	int frameCount;
 	int frameDelay;
 	int frameWidth;
-	int frameHeight;
-	int animationColumns;
-	int animationRows;
-	int animationDirection;
-
+	int maxFrame;
+	int curFrame;
+	int index;
+	int speed;
+	float x;
+	float y;
+	
 	ALLEGRO_BITMAP* image;
 
 };

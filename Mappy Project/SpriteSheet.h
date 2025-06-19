@@ -1,7 +1,9 @@
-#include <allegro5/allegro.h>
+#include <allegro5/allegro_acodec.h>
 #include <allegro5/allegro_image.h>
-#include "NPC.h"
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro.h>
 #include <iostream>
+#include "NPC.h"
 using namespace std;
 
 class Sprite
@@ -14,39 +16,50 @@ class Sprite
 
 public:
 
-	Sprite();
-	~Sprite();
-	void InitSprites();
-	void UpdateSprites(int width, int height, int dir, bool collided); //dir 1 = right, 0 = left, 2 = Standing Still
+	void UpdateSprites(int width, int height, int dir, bool collided);
+	void setRunningSpeed(int running) { runningSpeed = running; }
+	void setAnimationDir(int x) { animationDirection = x; }
+	int getDir() const { return animationDirection; }
+	bool explodingAnim() const { return exploding; }
+	int getHeight() const { return frameHeight; }
+	int getWidth() const { return frameWidth; }
 	void DrawSprites(int xoffset, int yoffset);
 	float getX() const { return x; }
 	float getY() const { return y; }
+	void Sprite::UpdateExplosion();
+	void Sprite::StartExplosion();
 	void setX(int sX) { x = sX; }
 	void setY(int sY) { y = sY; }
-	int getDir() const { return animationDirection; }
-	void setAnimationDir(int x) { animationDirection = x; }
-	void setRunningSpeed(int running) { runningSpeed = running; }
-	int getWidth() const { return frameWidth; }
-	int getHeight() const { return frameHeight; }
 	bool CollisionEndBlock();
+	void InitSprites();
+	~Sprite();
+	Sprite();
 
 private:
 
-	float x;
-	float y;
+
 	int directionalFrames[3];
-	int index;
-	int speed;
+	int animationDirection;
+	double explosionTime;
+	int animationColumns;
+	int explosionFrameW;
+	int explosionFrameH;
+	int explosionFrame;
+	int animationRows;
 	int runningSpeed;
-	int maxFrame;
-	int curFrame;
+	int frameHeight;
+	bool exploding;
 	int frameCount;
 	int frameDelay;
 	int frameWidth;
-	int frameHeight;
-	int animationColumns;
-	int animationRows;
-	int animationDirection;
+	int maxFrame;
+	int curFrame;
+	int index;
+	int speed;
+	float x;
+	float y;
 
+	ALLEGRO_BITMAP* explode;
 	ALLEGRO_BITMAP* image;
+	ALLEGRO_SAMPLE* sample;
 };

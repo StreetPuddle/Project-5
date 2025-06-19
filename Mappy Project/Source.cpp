@@ -1,18 +1,20 @@
 #include <allegro5/allegro_native_dialog.h>
 #include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_acodec.h>
+#include <allegro5/allegro_audio.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro.h>
 #include "SpriteSheet.h"
 #include "mappy_A5.h"
-#include "NPC.h"
 #include <iostream>
 #include <sstream>
+#include <cstdlib>
 #include <iomanip>
 #include <vector>
-#include <cstdlib>
 #include <ctime>
+#include "NPC.h"
 
 using namespace std;
 
@@ -54,6 +56,7 @@ int main(void)
 	bool winMessage = false;
 	double timePassed = 0.0;
 	const int HEIGHT = 480;
+	bool explosion = false;
 	double countDown = 0.0;
 	const int WIDTH = 900;
 	bool render = false;
@@ -78,8 +81,11 @@ int main(void)
 	//allegro variable
 	ALLEGRO_EVENT_QUEUE* event_queue = NULL;
 	ALLEGRO_DISPLAY* display = NULL;
-	ALLEGRO_TIMER* timer;
-	ALLEGRO_FONT* font;
+	ALLEGRO_SAMPLE* sample = NULL;
+	ALLEGRO_SAMPLE* menu = NULL;
+	ALLEGRO_SAMPLE* boom = NULL;
+	ALLEGRO_TIMER* timer = NULL;
+	ALLEGRO_FONT* font = NULL;
 
 	//program init
 	if (!al_init())//initialize Allegro
@@ -92,8 +98,24 @@ int main(void)
 	al_init_image_addon();
 	al_init_font_addon();
 	al_init_ttf_addon();
+	
+	if (!al_install_audio())
+		return -1;
+	if (!al_init_acodec_addon())
+		return -1;
+	if (!al_reserve_samples(4))
+		return -1;
+	sample = al_load_sample("overworld.wav");
+	if (!sample)
+		exit(9);
+	menu = al_load_sample("menu.wav");
+	if (!menu)
+		exit(9);
+	boom = al_load_sample("boom.wav");
+	if (!boom)
+		return(9);
 
-	font = al_load_ttf_font("Pokemon Classic.ttf", 27, 0);
+	font = al_load_ttf_font("Pokemon Classic.ttf", 18, 0);
 	if (!font)
 		return -2;
 
@@ -117,12 +139,13 @@ int main(void)
 	//intro to game
 	al_show_native_message_box(display, "Welcome!", "\t\tHow to Play!", "- Move with arrows\n- Hold shift to run\n"
 		"- Within 90 seconds, beat everyone to be able to enter the barn\n  by going up to them and pressing enter!\n"
-		"- Enter the barn to advance to the next level\n- Cheat Code : Up Up Down Down Left Right Left Right", 0, 0);
+		"- Enter the barn to advance to the next level\n- Winning gets a point, losing loses you a point\n"
+		"- Cheat Code : Up Up Down Down Left Right Left Right", 0, 0);
 
 	al_start_timer(timer);
+	al_play_sample(sample, 0.5, 0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
 	while (!done)
 	{
-		
 		ALLEGRO_EVENT ev;
 		al_wait_for_event(event_queue, &ev);
 		if (ev.type == ALLEGRO_EVENT_TIMER)
@@ -130,8 +153,9 @@ int main(void)
 			if(!inMenu)
 				timePassed += 1.0 / FPS;//incrementing time counter by 10th of a second
 			countDown = 90.0 - timePassed;//time left
+			player.UpdateExplosion();
 			render = true;
-			
+
 			//directional movement
 			if (keys[UP])
 				player.UpdateSprites(WIDTH, HEIGHT, 3, npcCollision(player, npcs));
@@ -143,10 +167,9 @@ int main(void)
 				player.UpdateSprites(WIDTH, HEIGHT, 1, npcCollision(player, npcs));
 			else
 				player.UpdateSprites(WIDTH, HEIGHT, 2, npcCollision(player, npcs));
-			
 
 			//block to test if player has reach endBlock or if time has run out to goto next level or finish the game
-			if ((player.CollisionEndBlock() && wins == goal) || countDown <= 0.0) {
+			if ((player.CollisionEndBlock() && wins >= goal) || countDown <= 0.0) {
 				recordedTImes[level] = timePassed;//index time it took to complete level
 				level += 2;//next level
 				wins = 0;
@@ -173,7 +196,6 @@ int main(void)
 					timePassed = 0.0;
 					player.setY(250);
 					player.setX(80);
-
 					
 				}
 				else//game ends
@@ -207,9 +229,11 @@ int main(void)
 				switch (ev.keyboard.keycode) {
 				case ALLEGRO_KEY_UP:
 					menuSelect = !menuSelect;//flips between 0/1
+					al_play_sample(menu, 0.3, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 					break;
 				case ALLEGRO_KEY_DOWN:
 					menuSelect = !menuSelect;//flips between 0/1
+					al_play_sample(menu, 0.3, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 					break;
 				case ALLEGRO_KEY_ENTER:
 					
@@ -225,7 +249,7 @@ int main(void)
 						al_flip_display();
 						al_rest(1);
 						
-						for (int i = 0; i < 3; i++) {//anticipation
+						for (int i = 0; i < 3; i++) {//anticipation.....
 							std::string message = std::string(i * 2, ' ') + ".";
 							al_draw_text(font, al_map_rgb(0, 0, 0), 50, 390, 0, message.c_str());
 							al_flip_display();
@@ -239,6 +263,13 @@ int main(void)
 							win ? "Darn! You won...!" : "Haha! I won, you lost!!!");
 						al_flip_display();
 						al_rest(3);
+
+						//upon losing, player will lose a win and explode lol
+						if (!win) {
+							player.StartExplosion();
+							al_play_sample(boom, 0.7, 0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+							wins--;
+						}
 					}
 					else {
 						inMenu = false;
@@ -250,38 +281,40 @@ int main(void)
 
 			//while key is pressed
 			else {
-				switch (ev.keyboard.keycode)
-				{
-				case ALLEGRO_KEY_ESCAPE:
-					done = true;
-					break;
-				case ALLEGRO_KEY_UP:
-					keys[UP] = true;
-					break;
-				case ALLEGRO_KEY_DOWN:
-					keys[DOWN] = true;
-					break;
-				case ALLEGRO_KEY_LEFT:
-					keys[LEFT] = true;
-					break;
-				case ALLEGRO_KEY_RIGHT:
-					keys[RIGHT] = true;
-					break;
-				case ALLEGRO_KEY_SPACE:
-					keys[SPACE] = true;
-					break;
-				case ALLEGRO_KEY_LSHIFT:
-					keys[SHIFT] = true;
-					player.setRunningSpeed(2);//speeds player up
-					break;
-				case ALLEGRO_KEY_ENTER:
-					keys[ENTER] = true;
-					//tests if player can engage in a battle
-					if (nearNPC(player, npcs)) {
-						inMenu = true;
-						menuSelect = 0;
+				if (!player.explodingAnim()) {
+					switch (ev.keyboard.keycode)
+					{
+					case ALLEGRO_KEY_ESCAPE:
+						done = true;
+						break;
+					case ALLEGRO_KEY_UP:
+						keys[UP] = true;
+						break;
+					case ALLEGRO_KEY_DOWN:
+						keys[DOWN] = true;
+						break;
+					case ALLEGRO_KEY_LEFT:
+						keys[LEFT] = true;
+						break;
+					case ALLEGRO_KEY_RIGHT:
+						keys[RIGHT] = true;
+						break;
+					case ALLEGRO_KEY_SPACE:
+						keys[SPACE] = true;
+						break;
+					case ALLEGRO_KEY_LSHIFT:
+						keys[SHIFT] = true;
+						player.setRunningSpeed(2);//speeds player up
+						break;
+					case ALLEGRO_KEY_ENTER:
+						keys[ENTER] = true;
+						//tests if player can engage in a battle
+						if (nearNPC(player, npcs)) {
+							inMenu = true;
+							menuSelect = 0;
+						}
+						break;
 					}
-					break;
 				}
 			}
 			lastEightKeys.push_back(ev.keyboard.keycode);//records last keypress
@@ -381,7 +414,7 @@ int main(void)
 				}
 
 				//HUD for timer and score
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 205, 5, 0, "WINS: %d    TIME LEFT: %.1f", wins, countDown);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 220, 0, 0, "WINS: %d           TIME LEFT: %.1f", wins, countDown);
 				MapUpdateAnims();
 				al_flip_display();
 			}
@@ -393,12 +426,15 @@ int main(void)
 	}
 
 	//deallocating
-	player.~Sprite();
-	npcs.clear();
-	al_destroy_timer(timer);
-	al_destroy_font(font);
 	al_destroy_event_queue(event_queue);
 	al_destroy_display(display);
+	al_destroy_sample(sample);
+	al_destroy_sample(menu);
+	al_destroy_sample(boom);
+	al_destroy_timer(timer);
+	al_destroy_font(font);
+	player.~Sprite();
+	npcs.clear();
 	MapFreeMem();
 	return 0;
 }
@@ -574,8 +610,8 @@ bool nearNPC(const Sprite& player, const std::vector<NPC*>& npcs) {
 		float npcYBound = npcY + npc->getHeight();
 
 		//detecting proximity
-		bool triggerX = (playerXBound >= npcX - 5) || (playerX <= npcXBound - 5);
-		bool triggerY = (playerYBound >= npcY - 5) || (playerY <= npcYBound - 5);
+		bool triggerX = (playerXBound >= npcX - 5) && (playerX <= npcXBound + 5);
+		bool triggerY = (playerYBound >= npcY - 5) && (playerY <= npcYBound + 5);
 
 		//returns true if within proximity
 		if (triggerX && triggerY)

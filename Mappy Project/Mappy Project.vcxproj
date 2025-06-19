@@ -49,6 +49,9 @@
     <Allegro_AddonTTF>true</Allegro_AddonTTF>
     <Allegro_AddonAcodec>true</Allegro_AddonAcodec>
     <Allegro_AddonDialog>true</Allegro_AddonDialog>
+    <Allegro_AddonPhysfs>true</Allegro_AddonPhysfs>
+    <Allegro_AddonMemfile>true</Allegro_AddonMemfile>
+    <Allegro_AddonVideo>true</Allegro_AddonVideo>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>

@@ -11,6 +11,8 @@
 #include <sstream>
 #include <iomanip>
 #include <vector>
+#include <cstdlib>
+#include <ctime>
 
 using namespace std;
 
@@ -35,6 +37,8 @@ void enteredCheatCode(std::vector<int>& input, Sprite& player, int level);
 //tests if the player has collided with an npc
 bool npcCollision(const Sprite& player, const std::vector<NPC*>& npcs);
 
+void createNPCs(NPC npc, std::vector<NPC*>& npcs);
+
 int main(void)
 {
 	const int WIDTH = 900;
@@ -49,6 +53,7 @@ int main(void)
 	bool done = false;
 	bool render = false;
 	char mapFile[12];
+	srand(time(0));
 
 	std::vector<int> lastEightKeys;
 
@@ -76,14 +81,7 @@ int main(void)
 	al_init_native_dialog_addon();
 
 	player.InitSprites();
-	for (int i = 0; i < 5; i++) {
-		int x = rand() % (800 - 100 + 1) + 300; // Random x in [100, 500]
-		int y = rand() % (350 - 80 + 1) + 80;
-		NPC* npc = new NPC();
-		std::string fileName = "NPC_" + std::to_string(i) + ".png";
-		npc->InitNPC(fileName, x, y);
-		npcs.push_back(npc);
-	}
+	createNPCs(npc, npcs);
 
 	
 
@@ -140,11 +138,11 @@ int main(void)
 			if (player.CollisionEndBlock() || countDown <= 0.0) {
 				recordedTImes[level] = timePassed;//index time it took to complete level
 				level += 2;//next level
-
+				
 				if (level <= 4) {//if a valid level, loads next fmp file, resets player and timer
 					sprintf(mapFile, "sample%d.fmp", level);
 					if (MapLoad(mapFile, 1)) exit(1);
-
+					createNPCs(npc, npcs);
 					if (countDown <= 0.0)
 						al_show_native_message_box(display, "Out of Time", "Time ran out!!", "Onto the next level!", 0, 0);
 					else
@@ -412,5 +410,24 @@ void enteredCheatCode(std::vector<int>& input, Sprite& player, int level) {
 			player.setX(4700);
 			player.setY(160);
 		}
+	}
+}
+
+void createNPCs(NPC npc, std::vector<NPC*>& npcs) {
+	int sectionX = 100;
+	int sectionXBound = 200;
+	npcs.clear();
+	for (int i = 0; i < 5; i++) {
+		
+		int x = rand() % (sectionXBound - sectionX + 1) + sectionX; // Random x in [100, 200]
+		int y = rand() % (350 - 80 + 1) + 80;
+
+		NPC* npc = new NPC();
+		std::string fileName = "NPC_" + std::to_string(i) + ".png";
+		npc->InitNPC(fileName, x, y);
+		npcs.push_back(npc);
+
+		sectionX += 100;
+		sectionXBound += 100;
 	}
 }

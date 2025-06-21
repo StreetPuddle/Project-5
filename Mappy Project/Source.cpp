@@ -138,7 +138,7 @@ int main(void)
 
 	//intro to game
 	al_show_native_message_box(display, "Welcome!", "\t\tHow to Play!", "- Move with arrows\n- Hold shift to run\n"
-		"- Within 90 seconds, beat everyone to be able to enter the barn\n  by going up to them and pressing enter!\n"
+		"- Within 90 seconds, get as many wins as there are people to be able\n  to enter the barn by going up to them and pressing enter!\n"
 		"- Enter the barn to advance to the next level\n- Winning gets a point, losing loses you a point\n"
 		"- Cheat Code : Up Up Down Down Left Right Left Right", 0, 0);
 
